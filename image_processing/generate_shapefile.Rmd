@@ -1,0 +1,63 @@
+---
+title: "Create_shapefiles_for_field_trial_plots"
+output: html_document
+---
+
+```{r setup}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(root.dir = "/analysis/weed_detectionAHRI/field_trial")
+```
+
+Load the required libraries
+```{r }
+library('dplyr')
+library('tidyr')
+library('UAStools')
+library('readxl')
+```
+
+Following the instructions from the original tutorial https://github.com/andersst91/UAStools/wiki/plotshpcreate.R#ex1-single-row-plots
+
+The only important columns are "Range, Row, Plot, Barcode". The fieldnotes can be uploaded directly after confirming the columns are properly named.
+
+```{r}
+# Import the table files with experiment description
+bl_infile <- read_excel('/analysis/weed_detectionAHRI/field_trial/fieldnotes.xlsx')
+```
+
+```{r}
+# Select the required columns from the fieldnotes file
+bl_infile <- bl_infile %>% 
+  select(RANGE, ROW, Barcode, Plot)
+
+# Rename the file
+bl_test <- bl_infile
+# Renamed the columns because the fieldnotes have the range and row for opposite directions. It is important to read the library documentation to know what the tool expects.
+bl_test <- bl_test %>% rename(Range = ROW) %>% rename(Row = RANGE)
+
+```
+
+Coordinated easting, northing
+(Can be obtained by opening the orthomosaic on QGIS)  
+
+up_left =    344318.613803779,6751550.37374348
+up_right =   344377.476175635,6751550.73430931
+down_right = 344376.989411763,6751480.17157625
+down_left =  344318.090983325,6751480.78453816
+
+```{r}
+plotshpcreate(A=c(344318.403803779,6751550.37374348),
+              B=c(344377.476175635,6751550.73430931),
+              infile = bl_test,
+              nrowplot = 1,
+              rangespc = 8,
+              rangebuf = 0.5,
+              rowspc = 40, 
+              rowbuf = 3,
+              outfile ='110821_shapefile',
+              field='sandplain_field')
+```
+
+Should output multiple files, including shapefiles.
+
+

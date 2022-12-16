@@ -1,0 +1,41 @@
+#!/bin/bash -l
+
+#SBATCH --time=24:00:00
+#SBATCH --account=pawsey0149
+#SBATCH --ntasks=1
+#SBATCH --nodes=1
+#SBATCH --gres=gpu:2
+#SBATCH --cpus-per-task=24
+#SBATCH --job-name=opt_fastai
+#SBATCH --cluster=topaz
+#SBATCH --partition=nvlinkq
+#SBATCH --qos=high
+
+# $1 is the optuna script path
+# usage 
+# sbatch 0_optuna.slm full_path_to_file
+
+
+## these seem like a sensible default for Zeus/Topaz/Vis# directory to download image
+image="$MYGROUP/singularity/pytorch_21.07-py3.sif"
+home_dir="$MYGROUP/fake-homes/fake_home_pyfast_21_07"
+data_dir="$MYSCRATCH/"
+nbs_dir="$MYGROUP/"
+#over="$MYGROUP/singularity/overlay_pytorch"
+
+# Load the modules
+module load singularity
+module load cuda
+export SINGULARITYENV_CUDA_HOME=$CUDA_HOME
+ 
+# start pytorch/fastai notebook
+# use distributed training on the two GPUS by -m fastai.launch
+srun singularity exec --nv \
+                      -C \
+                      -B ${home_dir}:/home/modanilevicz \
+		      -B ${data_dir}:/data \
+                      -B ${nbs_dir}:/nbs_dir \
+                      $image \
+                      python $1  
+
+
